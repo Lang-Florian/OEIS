@@ -329,13 +329,13 @@ class App extends StatelessWidget {
         home: const SearchScreen(),
         theme: ThemeData(
           useMaterial3: true,
-          colorSchemeSeed: Color.fromARGB(255, 55, 79, 120),
+          colorSchemeSeed: const Color.fromARGB(255, 55, 79, 120),
           brightness: Brightness.light,
           fontFamily: 'SourceCodePro',
         ),
         darkTheme: ThemeData(
           useMaterial3: true,
-          colorSchemeSeed: Color.fromARGB(255, 55, 79, 120),
+          colorSchemeSeed: const Color.fromARGB(255, 55, 79, 120),
           brightness: Brightness.dark,
           fontFamily: 'SourceCodePro',
         ),
@@ -470,7 +470,7 @@ class SearchScreenState extends State<SearchScreen> {
                     content: RichText(
                       text: TextSpan(
                         children: <TextSpan>[
-                          const TextSpan(text: 'This app is a simple search client for the '),
+                          TextSpan(text: 'This app is a simple search client for the ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           TextSpan(
                             text: 'OEIS',
                             style: TextStyle(
@@ -482,10 +482,10 @@ class SearchScreenState extends State<SearchScreen> {
                                 mode: LaunchMode.externalApplication,
                               )
                           ),
-                          const TextSpan(text: ' (On-Line Encyclopedia of Integer Sequences).\n'),
-                          const TextSpan(text: 'It is not affiliated with the OEIS in any way.\n\n'),
-                          const TextSpan(text: 'The Font is Source Code Pro by Paul D. Hunt.\n\n'),
-                          const TextSpan(text: 'The source code for this app is available on '),
+                          TextSpan(text: ' (On-Line Encyclopedia of Integer Sequences).\n', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                          TextSpan(text: 'It is not affiliated with the OEIS in any way.\n\n', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                          TextSpan(text: 'The Font is Source Code Pro by Paul D. Hunt.\n\n', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                          TextSpan(text: 'The source code for this app is available on ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           TextSpan(
                             text: 'GitHub',
                             style: TextStyle(
@@ -497,14 +497,14 @@ class SearchScreenState extends State<SearchScreen> {
                                 mode: LaunchMode.externalApplication,
                               )
                           ),
-                          const TextSpan(text: '.\n\nMade with '),
+                          TextSpan(text: '.\n\nMade with ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           TextSpan(
                             text: '❤',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                          const TextSpan(text: ' by '),
+                          TextSpan(text: ' by ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           TextSpan(
                             text: 'n3u1r0n',
                             style: TextStyle(
