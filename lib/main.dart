@@ -3,6 +3,7 @@ import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class Sequence {
   final String number;
@@ -98,18 +99,27 @@ class Sequence {
       number: json['number'].toString(),
       data: json['data'].split(','),
       name: json['name'],
-      comments: ((json['comment'] ?? []) as List).map((e) => e.toString()).toList(),
-      references: ((json['reference'] ?? []) as List).map((e) => e.toString()).toList(),
+      comments:
+          ((json['comment'] ?? []) as List).map((e) => e.toString()).toList(),
+      references:
+          ((json['reference'] ?? []) as List).map((e) => e.toString()).toList(),
       links: ((json['link'] ?? []) as List).map((e) => e.toString()).toList(),
-      formulas: ((json['formula'] ?? []) as List).map((e) => e.toString()).toList(),
-      examples: ((json['example'] ?? []) as List).map((e) => e.toString()).toList(),
+      formulas:
+          ((json['formula'] ?? []) as List).map((e) => e.toString()).toList(),
+      examples:
+          ((json['example'] ?? []) as List).map((e) => e.toString()).toList(),
       maple: ((json['maple'] ?? []) as List).map((e) => e.toString()).toList(),
-      mathematica: ((json['mathematica'] ?? []) as List).map((e) => e.toString()).toList(),
-      program: ((json['program'] ?? []) as List).map((e) => e.toString()).toList(),
-      crossReferences: ((json['xref'] ?? []) as List).map((e) => e.toString()).toList(),
+      mathematica: ((json['mathematica'] ?? []) as List)
+          .map((e) => e.toString())
+          .toList(),
+      program:
+          ((json['program'] ?? []) as List).map((e) => e.toString()).toList(),
+      crossReferences:
+          ((json['xref'] ?? []) as List).map((e) => e.toString()).toList(),
       offset: json['offset'] ?? '',
       author: json['author'] ?? '',
-      keywords: json['keyword'].toString().split(',')..removeWhere((e) => e.isEmpty),
+      keywords: json['keyword'].toString().split(',')
+        ..removeWhere((e) => e.isEmpty),
     );
   }
 }
@@ -126,7 +136,8 @@ class SequenceScreen extends StatelessWidget {
         title: Text('A${sequence.number.padLeft(6, '0')}'),
       ),
       body: Padding(
-        padding: const EdgeInsets.only(left: 16.0, right: 16.0, top: 0.0, bottom: 8.0),
+        padding: const EdgeInsets.only(
+            left: 16.0, right: 16.0, top: 0.0, bottom: 8.0),
         child: ListView(
           children: [
             Card(
@@ -315,40 +326,55 @@ void main() {
 }
 
 class App extends StatelessWidget {
-  final ValueNotifier<ThemeMode> _themeMode = ValueNotifier(ThemeMode.dark);
+  final _themeMode = ValueNotifier<ThemeMode>(ThemeMode.dark);
 
   App({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
+    SharedPreferences.getInstance().then((prefs) {
+      if (prefs.containsKey('themeMode')) {
+        if (prefs.getInt('themeMode') == 0) {
+          _themeMode.value = ThemeMode.light;
+        } else if (prefs.getInt('themeMode') == 1) {
+          _themeMode.value = ThemeMode.dark;
+        }
+      } else {
+        _themeMode.value = ThemeMode.dark;
+      }
+    });
     return ValueListenableBuilder<ThemeMode>(
-      valueListenable: _themeMode,
-      builder: (_, mode, __) =>
-      MaterialApp(
-        title: 'OEIS',
-        home: const SearchScreen(),
-        theme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color.fromARGB(255, 55, 79, 120),
-          brightness: Brightness.light,
-          fontFamily: 'SourceCodePro',
-        ),
-        darkTheme: ThemeData(
-          useMaterial3: true,
-          colorSchemeSeed: const Color.fromARGB(255, 55, 79, 120),
-          brightness: Brightness.dark,
-          fontFamily: 'SourceCodePro',
-        ),
-        themeMode: mode,
-      )
-    );
+        valueListenable: _themeMode,
+        builder: (_, mode, __) => MaterialApp(
+              title: 'OEIS',
+              home: const SearchScreen(),
+              theme: ThemeData(
+                useMaterial3: true,
+                colorSchemeSeed: const Color.fromARGB(255, 55, 79, 120),
+                brightness: Brightness.light,
+                fontFamily: 'SourceCodePro',
+              ),
+              darkTheme: ThemeData(
+                useMaterial3: true,
+                colorSchemeSeed: const Color.fromARGB(255, 55, 79, 120),
+                brightness: Brightness.dark,
+                fontFamily: 'SourceCodePro',
+              ),
+              themeMode: mode,
+            ));
   }
 
   switchTheme() async {
     if (_themeMode.value == ThemeMode.dark) {
       _themeMode.value = ThemeMode.light;
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setInt('themeMode', 0);
+      });
     } else if (_themeMode.value == ThemeMode.light) {
       _themeMode.value = ThemeMode.dark;
+      SharedPreferences.getInstance().then((prefs) {
+        prefs.setInt('themeMode', 1);
+      });
     }
   }
 }
@@ -410,7 +436,9 @@ class SearchScreenState extends State<SearchScreen> {
         _noResults = true;
         return;
       }
-      _searchResults = (jsonDecode(response.body)['results'] as List).map((e) => Sequence.fromJson(e)).toList();
+      _searchResults = (jsonDecode(response.body)['results'] as List)
+          .map((e) => Sequence.fromJson(e))
+          .toList();
       _count = jsonDecode(response.body)['count'];
       _currentQuery = _queryController.text;
     });
@@ -435,7 +463,9 @@ class SearchScreenState extends State<SearchScreen> {
           jsonDecode(response.body)['results'] == null) {
         return;
       }
-      _searchResults.addAll((jsonDecode(response.body)['results'] as List).map((e) => Sequence.fromJson(e)).toList());
+      _searchResults.addAll((jsonDecode(response.body)['results'] as List)
+          .map((e) => Sequence.fromJson(e))
+          .toList());
     });
   }
 
@@ -446,18 +476,23 @@ class SearchScreenState extends State<SearchScreen> {
         title: Text(
           'OEIS',
           style: TextStyle(
-            color: app._themeMode.value == ThemeMode.light ?
-              Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.primary,
+            color: app._themeMode.value == ThemeMode.light
+                ? Theme.of(context).colorScheme.onPrimary
+                : Theme.of(context).colorScheme.primary,
           ),
         ),
-        backgroundColor: app._themeMode.value == ThemeMode.dark ?
-          Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.primary,
+        backgroundColor: app._themeMode.value == ThemeMode.dark
+            ? Theme.of(context).colorScheme.onPrimary
+            : Theme.of(context).colorScheme.primary,
         actions: <Widget>[
           IconButton(
-            icon: Icon(app._themeMode.value == ThemeMode.light ? Icons.light_mode : Icons.dark_mode),
+            icon: Icon(app._themeMode.value == ThemeMode.light
+                ? Icons.light_mode
+                : Icons.dark_mode),
             onPressed: app.switchTheme,
-            color: app._themeMode.value == ThemeMode.light ?
-              Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.primary,
+            color: app._themeMode.value == ThemeMode.light
+                ? Theme.of(context).colorScheme.onPrimary
+                : Theme.of(context).colorScheme.primary,
           ),
           IconButton(
             icon: const Icon(Icons.info),
@@ -470,52 +505,82 @@ class SearchScreenState extends State<SearchScreen> {
                     content: RichText(
                       text: TextSpan(
                         children: <TextSpan>[
-                          TextSpan(text: 'This app is a simple search client for the ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           TextSpan(
-                            text: 'OEIS',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () => launchUrl(
-                                Uri.https('oeis.org', '/'),
-                                mode: LaunchMode.externalApplication,
-                              )
-                          ),
-                          TextSpan(text: ' (On-Line Encyclopedia of Integer Sequences).\n', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                          TextSpan(text: 'It is not affiliated with the OEIS in any way.\n\n', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                          TextSpan(text: 'The Font is Source Code Pro by Paul D. Hunt.\n\n', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
-                          TextSpan(text: 'The source code for this app is available on ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                              text:
+                                  'This app is a simple search client for the ',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                           TextSpan(
-                            text: 'GitHub',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () => launchUrl(
-                                Uri.https('github.com', '/n3u1r0n/oeis'),
-                                mode: LaunchMode.externalApplication,
-                              )
-                          ),
-                          TextSpan(text: '.\n\nMade with ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
+                              text: 'OEIS',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => launchUrl(
+                                      Uri.https('oeis.org', '/'),
+                                      mode: LaunchMode.externalApplication,
+                                    )),
+                          TextSpan(
+                              text:
+                                  ' (On-Line Encyclopedia of Integer Sequences).\n',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
+                          TextSpan(
+                              text:
+                                  'It is not affiliated with the OEIS in any way.\n\n',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
+                          TextSpan(
+                              text:
+                                  'The Font is Source Code Pro by Paul D. Hunt.\n\n',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
+                          TextSpan(
+                              text:
+                                  'The source code for this app is available on ',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
+                          TextSpan(
+                              text: 'GitHub',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => launchUrl(
+                                      Uri.https('github.com', '/n3u1r0n/oeis'),
+                                      mode: LaunchMode.externalApplication,
+                                    )),
+                          TextSpan(
+                              text: '.\n\nMade with ',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
                           TextSpan(
                             text: '❤',
                             style: TextStyle(
                               color: Theme.of(context).colorScheme.primary,
                             ),
                           ),
-                          TextSpan(text: ' by ', style: TextStyle(color: Theme.of(context).colorScheme.onSurface)),
                           TextSpan(
-                            text: 'n3u1r0n',
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.primary,
-                            ),
-                            recognizer: TapGestureRecognizer()
-                              ..onTap = () => launchUrl(
-                                Uri.https('github.com', '/n3u1r0n'),
-                                mode: LaunchMode.externalApplication,
-                              )
-                          ),
+                              text: ' by ',
+                              style: TextStyle(
+                                  color:
+                                      Theme.of(context).colorScheme.onSurface)),
+                          TextSpan(
+                              text: 'n3u1r0n',
+                              style: TextStyle(
+                                color: Theme.of(context).colorScheme.primary,
+                              ),
+                              recognizer: TapGestureRecognizer()
+                                ..onTap = () => launchUrl(
+                                      Uri.https('github.com', '/n3u1r0n'),
+                                      mode: LaunchMode.externalApplication,
+                                    )),
                           const TextSpan(text: '.'),
                         ],
                       ),
@@ -532,39 +597,39 @@ class SearchScreenState extends State<SearchScreen> {
                 },
               );
             },
-            color: app._themeMode.value == ThemeMode.light ?
-              Theme.of(context).colorScheme.onPrimary : Theme.of(context).colorScheme.primary,
+            color: app._themeMode.value == ThemeMode.light
+                ? Theme.of(context).colorScheme.onPrimary
+                : Theme.of(context).colorScheme.primary,
           ),
         ],
       ),
       body: CustomScrollView(
         slivers: <Widget>[
           SliverAppBar(
-            backgroundColor: Theme.of(context).colorScheme.primaryContainer,
-            floating: true,
-            snap: true,
-            pinned: _isSearching || _noResults,
-            title: Row(
-              children: <Widget>[
-                Expanded(
-                  child: TextField(
-                    controller: _queryController,
-                    decoration: const InputDecoration(
-                      hintText: 'Search',
-                      border: InputBorder.none,
-                      prefix: Text('Seq. '),
+              backgroundColor: Theme.of(context).colorScheme.primaryContainer,
+              floating: true,
+              snap: true,
+              pinned: _isSearching || _noResults,
+              title: Row(
+                children: <Widget>[
+                  Expanded(
+                    child: TextField(
+                      controller: _queryController,
+                      decoration: const InputDecoration(
+                        hintText: 'Search',
+                        border: InputBorder.none,
+                        prefix: Text('Seq. '),
+                      ),
+                      onSubmitted: (value) => _searchSequences(),
+                      onTapOutside: (event) => FocusScope.of(context).unfocus(),
                     ),
-                    onSubmitted: (value) => _searchSequences(),
-                    onTapOutside: (event) => FocusScope.of(context).unfocus(),
                   ),
-                ),
-                ElevatedButton(
-                  onPressed: _searchSequences,
-                  child: const Text('Search'),
-                ),
-              ],
-            )
-          ),
+                  ElevatedButton(
+                    onPressed: _searchSequences,
+                    child: const Text('Search'),
+                  ),
+                ],
+              )),
           SliverList(
             delegate: SliverChildBuilderDelegate(
               (context, index) {
@@ -579,7 +644,9 @@ class SearchScreenState extends State<SearchScreen> {
                 }
                 return _searchResults[index].getWidget(context);
               },
-              childCount: _count > _searchResults.length ? _searchResults.length + 1 : _searchResults.length,
+              childCount: _count > _searchResults.length
+                  ? _searchResults.length + 1
+                  : _searchResults.length,
             ),
           ),
           if (_isSearching)
@@ -599,14 +666,17 @@ class SearchScreenState extends State<SearchScreen> {
       bottomSheet: Row(
         children: [
           Expanded(
-            child: Container(
-              color: Theme.of(context).colorScheme.primaryContainer,
-              child: Text(
-                _isSearching ? 'Searching...' : (_count == -1 ? 'Search a Sequence.' : 'Found $_count results'),
-                textAlign: TextAlign.center,
-              ),
-            )
-          ),
+              child: Container(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            child: Text(
+              _isSearching
+                  ? 'Searching...'
+                  : (_count == -1
+                      ? 'Search a Sequence.'
+                      : 'Found $_count results'),
+              textAlign: TextAlign.center,
+            ),
+          )),
         ],
       ),
     );
